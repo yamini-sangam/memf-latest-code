@@ -1,0 +1,33 @@
+%dw 2.0
+
+type auto_a679da10_aa93_4237_9f7d_816fcaee51dc_Input_Payload = {|
+  GenericEvent: {|
+    EventId: Any, 
+    EventCategory: String, 
+    EventDescription: String, 
+    EVENT_CODE: Number {"typeAlias": "auto_083d6046-8b25-4893-9e5f-0bd2e8a48f14_Output-Variables-eventCode"}, 
+    Severity: String, 
+    transactionId: String, 
+    EnvironmentDetails: {|
+      SYSTEM_INFO: {|
+        Env: String, 
+        ServerInstance: String, 
+        ServerVersion: String {"typeAlias": "auto_083d6046-8b25-4893-9e5f-0bd2e8a48f14_Output-Variables-serverVersion"}
+      |}
+    |}, 
+    PayloadHeader: {|
+      Orginalpayload: Any, 
+      pheader: {| PayloadType: String |}
+    |}, 
+    TRACKING_ID: String, 
+    SourceQueue: String {"typeAlias": "auto_083d6046-8b25-4893-9e5f-0bd2e8a48f14_Output-Variables-sourceQueue"}, 
+    ComponentType: String {"typeAlias": "auto_083d6046-8b25-4893-9e5f-0bd2e8a48f14_Output-Variables-componentType"}, 
+    AppName: String, 
+    timestamp: DateTime, 
+    flowName: String | Null, 
+    status: Number, 
+    description: String, 
+    replayFlag: Number
+  |}
+|}
+

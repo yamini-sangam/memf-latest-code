@@ -1,0 +1,165 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<mule xmlns:os="http://www.mulesoft.org/schema/mule/os" xmlns:http="http://www.mulesoft.org/schema/mule/http"
+	xmlns:ee="http://www.mulesoft.org/schema/mule/ee/core"
+	xmlns="http://www.mulesoft.org/schema/mule/core" xmlns:doc="http://www.mulesoft.org/schema/mule/documentation" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
+http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd
+http://www.mulesoft.org/schema/mule/http http://www.mulesoft.org/schema/mule/http/current/mule-http.xsd
+http://www.mulesoft.org/schema/mule/os http://www.mulesoft.org/schema/mule/os/current/mule-os.xsd">
+	<sub-flow name="sf-post-customer-details" doc:id="7441d063-07e4-4861-b50d-1af93f2691f0" >
+		<logger level="INFO" doc:name="LOG INFO Start Flow" doc:id="2a90954a-ae0f-477e-a989-2609fdb69189" message='#["sf-post-customer-details"]'/>
+		<logger level="INFO" doc:name="LOG INFO message info" doc:id="2d64ece3-afe8-40b1-9c04-60c26207086d" message="#[message]"/>
+		<set-variable value="#[message]" doc:name="PL Original Message" doc:id="0fa5c3cb-ab1e-4e8a-b770-74f03f7c293b" variableName="originalMsg" />
+		<flow-ref doc:name="Call sf-initVars" doc:id="e3ec148d-316a-4409-963c-7c760423915f" name="sf-initVars"/>
+		<logger level="INFO" doc:name="LOG INFO Customer DB Request" doc:id="a0784a19-f799-47c8-b931-1b2a073bca06" message="#[payload]"/>
+		<choice doc:name="Check CustomerId Is Valid" doc:id="fdb3004b-1168-48a6-af98-2ce9b6b20f07" >
+			<when expression="isEmpty(payload.Customer.email) == false">
+				<ee:transform doc:name="Customer DB Create" doc:id="f1699067-6573-4d46-85d3-7536c0d2ffe5">
+			<ee:message>
+				<ee:set-payload><![CDATA[%dw 2.0
+output application/json
+---
+{
+	"message" : "Customer Created Successfully"
+}]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+				<ee:transform doc:name="DW Map CO GenericEvent Success" doc:id="88ecab57-a491-42df-9e8b-fa220f63f76d">
+			<ee:message>
+				<ee:set-payload><![CDATA[%dw 2.0
+import capitalize from dw::core::Strings
+
+import dw::Runtime
+output application/xml
+
+---
+GenericEvent:{
+	EventId: randomInt(1000),
+	EventCategory : 'AUDIT',
+	EventDescription : 'SUCCESS RESPONSE',
+	EVENT_CODE: 2,
+	Severity : 'INFO',
+	transactionId:correlationId,
+	EnvironmentDetails : 
+	{
+		SYSTEM_INFO :
+		{
+		Env: p('environment') default "Dev",
+		ServerInstance :server.host default '',
+		ServerVersion : vars.serverVersion default "Mule EE 4.2",
+			
+	}},
+		PayloadHeader :{
+			Orginalpayload : vars.originalMsg.payload,
+			//(path :inboundProperties.'http.query.params'.HttpPath),
+			pheader :{
+		PayloadType :vars.originalMsg.attributes.Headers."content-type"
+		//CORRELATION_ID : flowVars.Message_id
+				
+	} },
+	  
+	 TRACKING_ID: correlationId,
+		
+     SourceQueue :vars.sourceQueue,
+	 ComponentType :vars.componentType,
+//	 ComponentName : flow.name,
+     MsgId : correlationId,
+     FnFilename : 'NULL',
+     FnHostname : 'NULL',
+     ReplayFlagcount : 0,
+     Region : 'NULL',
+     SiteOrderId : 'NULL',
+     
+	 AppName:p('applicationName') default 'MSS_CUSTOMER_ONBOARDING_SAPI',
+     timestamp : now(),
+	 flowName : upper(vars.componentName),
+	 status: 0,
+	 description: "Customer Create Success",
+	 replayFlag: 'N'
+	 }]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+			</when>
+			<otherwise>
+				<ee:transform doc:name="Customer DB Error" doc:id="239b618e-df3d-4c7f-84ee-bede695f6b86" >
+					<ee:message >
+						<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+---
+{
+	"message" : "Customer Created Successfully"
+}]]></ee:set-payload>
+					</ee:message>
+				</ee:transform>
+				<ee:transform doc:name="DW Map CO GenericEvent Failure" doc:id="e338c2b4-c73a-437c-9fc9-159feea1ee85" >
+					<ee:message >
+						<ee:set-payload ><![CDATA[%dw 2.0
+import capitalize from dw::core::Strings
+
+import dw::Runtime
+output application/xml
+
+---
+GenericEvent:{
+	EventId: randomInt(1000),
+	EventCategory : 'USER EXCEPTION',
+	EventDescription : 'USER EXCEPRTION',
+	EVENT_CODE: 2,
+	Severity : 'ERROR',
+	transactionId:correlationId,
+	EnvironmentDetails : 
+	{
+		SYSTEM_INFO :
+		{
+		Env: p('environment') default "Dev",
+		ServerInstance :server.host default '',
+		ServerVersion : vars.serverVersion default "Mule EE 4.2",
+			
+	}},
+		PayloadHeader :{
+			Orginalpayload : vars.originalMsg.payload,
+			//(path :inboundProperties.'http.query.params'.HttpPath),
+			pheader :{
+		PayloadType :vars.originalMsg.attributes.Headers."content-type"
+		//CORRELATION_ID : flowVars.Message_id
+				
+	} },
+	  
+	 TRACKING_ID: correlationId,
+		
+     SourceQueue :vars.sourceQueue,
+	 ComponentType :vars.componentType,
+//	 ComponentName : flow.name,
+     MsgId : correlationId,
+     FnFilename : 'NULL',
+     FnHostname : 'NULL',
+     ReplayFlagcount : 0,
+     Region : 'NULL',
+     SiteOrderId : 'NULL',
+     
+	 AppName:p('applicationName') default 'MSS_CUSTOMER_ONBOARDING_SAPI',
+     timestamp : now(),
+	 flowName : upper(vars.componentName),
+	 status: 0,
+	 description: "Customer Create Success",
+	 replayFlag: 'N'
+	 }]]></ee:set-payload>
+					</ee:message>
+				</ee:transform>
+			</otherwise>
+		</choice>
+		<flow-ref doc:name="Refer to sf-create-customer-db-request-Sub Flow" doc:id="0cd769dc-d004-44db-a973-a62de3d99d14" name="sf-create-customer-db-request" />
+		<logger level="INFO" doc:name="LOG INFO End Flow" doc:id="94687e4d-d9d2-436a-917b-8b6244c7dc58" message='#["sf-customer-create-db-start-end"]'/>
+	</sub-flow>
+	<sub-flow name="sf-create-customer-db-request" doc:id="a679da10-aa93-4237-9f7d-816fcaee51dc" >
+		<logger level="INFO" doc:name="LOG INFO Memf GenericEvent API-Success Request " doc:id="a97c82a3-37c0-4450-a892-25bc9f76aa9e" message="#[payload]" />
+		<http:request method="POST" doc:name="Call Memf GenericEvent API-Success" doc:id="f4bd6e7d-6f76-4be2-97f4-2cea14755032" path="${http.requester.path}" config-ref="GE_HTTP_Request_Config"/>
+	</sub-flow>
+	<sub-flow name="sf-initVars" doc:id="083d6046-8b25-4893-9e5f-0bd2e8a48f14" >
+		<set-variable value='#[1]' doc:name="FV Event Code" doc:id="80960c55-0dee-432d-90b1-ad962f25f942" variableName="eventCode"/>
+		<set-variable value='#["Mule-EE-4.2.2"]' doc:name="FV Mule Version" doc:id="3100fc99-50f3-4926-891f-15ae4c03ac23" variableName="serverVersion"/>
+		<set-variable value='#["MULESOFT"]' doc:name="FV Component Type" doc:id="899819ce-ee04-46c7-954c-f1c0a572453e" variableName="componentType"/>
+		<set-variable value='#["CO-Q1"]' doc:name="FV Source Queue" doc:id="e416f3bf-ebf7-4d66-9d6e-c40682e2e19e" variableName="sourceQueue"/>
+		<set-variable value='#["mf_impl_post_customer_details"]' doc:name="FV Component Name" doc:id="885efb92-b1ee-46f6-a8af-168bfede5f4f" variableName="componentName"/>
+	</sub-flow>
+</mule>

@@ -1,0 +1,23 @@
+
+http:
+  host: "localhost"
+  port: "8081"
+  path: "/sys/ge/db"
+  
+
+  
+mssql:
+  username: "![h7/nQRLEbpQ=]"
+  password: "![h7/nQRLEbpQ=]"
+  host: "![7wE88k7w1KQEDTPwiwvXHg==]"
+  port: "![DC6TzdfdIpM=]"
+  database: "![z4dlPBlaln0=]"
+
+Activemq:
+  username: "admin"
+  password: "admin"
+  url: "tcp://localhost:61616"
+  
+environment: "local"
+applicationName: "mss-memf-generic-event-producer-sapi"
+

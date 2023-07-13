@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<mule xmlns:ee="http://www.mulesoft.org/schema/mule/ee/core" xmlns:http="http://www.mulesoft.org/schema/mule/http"
+	xmlns="http://www.mulesoft.org/schema/mule/core"
+	xmlns:doc="http://www.mulesoft.org/schema/mule/documentation" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
+http://www.mulesoft.org/schema/mule/http http://www.mulesoft.org/schema/mule/http/current/mule-http.xsd
+http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd">
+	<flow name="mf-post-generic-event-db" doc:id="dc83d659-8876-4c8d-a08b-644fcae4dd20" >
+		<http:listener doc:name="main_http-listener" doc:id="d8c6bef3-f60e-4e71-8749-e20cb3104e3a" config-ref="main_http-listener" path="${http.path}"/>
+		<flow-ref doc:name="Refer to cf-post-generic-event-from-queue-to-db" doc:id="1fc90e60-8e65-486a-89be-74e11350714e" name="cf-post-generic-event-from-queue-to-db"/>
+		<logger level="INFO" doc:name="Flow End Info Log" doc:id="4409fec0-fd4a-4581-8ce1-b24e71375539" message="#[payload]"/>
+	</flow>
+</mule>

@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<mule xmlns:ee="http://www.mulesoft.org/schema/mule/ee/core"
+	xmlns:http="http://www.mulesoft.org/schema/mule/http" xmlns="http://www.mulesoft.org/schema/mule/core"
+	xmlns:doc="http://www.mulesoft.org/schema/mule/documentation"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="
+http://www.mulesoft.org/schema/mule/http http://www.mulesoft.org/schema/mule/http/current/mule-http.xsd http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
+http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd">
+	<flow name="mf-post-mss-customer-onboarding" doc:id="82c7bcf9-e71e-498f-896b-6b0ede10a942" >
+		<http:listener doc:name="co-main-http-listerner" doc:id="e056b1eb-4a43-48fb-b0cd-718640ddfe72" config-ref="main_http-listener" path="${http.listener.path}" allowedMethods="POST">
+			<http:error-response >
+				<http:body ><![CDATA[#[output text/json --- error.description]]]></http:body>
+			</http:error-response>
+		</http:listener>
+		
+		<flow-ref doc:name="Refer to sf-post-customer-details" doc:id="7950ca71-a58c-4c68-ad92-618b3c21b9ab" name="sf-post-customer-details"/>
+		<error-handler >
+			<on-error-propagate enableNotifications="true" logException="true" doc:name="On Error Propagate" doc:id="fdd7f8dc-0c02-4d47-9d06-1dc815e6e46b" >
+				<ee:transform doc:name="Transform Message" doc:id="8e2e0f34-9af8-4956-86e1-ed592d13016d" >
+					<ee:message >
+						<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+---
+{
+"errorCode": "Database-Error",
+
+"errorDescription": error.detailedDescription,
+
+}]]></ee:set-payload>
+					</ee:message>
+				</ee:transform>
+			</on-error-propagate>
+		</error-handler>
+	</flow>
+</mule>

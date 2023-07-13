@@ -1,0 +1,16 @@
+
+http:
+  listener:
+    host: "localhost"
+    port: "8082"
+    path: "/sys/co/customer"
+  requester:
+    host: "localhost"
+    port: "8081"
+    path: "/sys/ge/db"
+  
+db:
+  username: "root"
+  password: "root"
+  host: "sample.db"
+  port: "3306"

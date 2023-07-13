@@ -1,0 +1,86 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<mule xmlns:os="http://www.mulesoft.org/schema/mule/os"
+	xmlns:db="http://www.mulesoft.org/schema/mule/db"
+	xmlns:vm="http://www.mulesoft.org/schema/mule/vm"
+	xmlns:ee="http://www.mulesoft.org/schema/mule/ee/core" xmlns="http://www.mulesoft.org/schema/mule/core"
+	xmlns:doc="http://www.mulesoft.org/schema/mule/documentation"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="
+http://www.mulesoft.org/schema/mule/db http://www.mulesoft.org/schema/mule/db/current/mule-db.xsd 
+http://www.mulesoft.org/schema/mule/vm http://www.mulesoft.org/schema/mule/vm/current/mule-vm.xsd 
+http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
+http://www.mulesoft.org/schema/mule/os http://www.mulesoft.org/schema/mule/os/current/mule-os.xsd">
+	<sub-flow name="cf-post-generic-event-from-queue-to-db" doc:id="e5b2088e-9583-45e1-873d-688866b3885e" >
+	<logger level="INFO" doc:name="LOG INFO Start Flow" doc:id="88ac775e-3767-4bb3-9f03-bfdfdbf25ca1" message='#["cf-generic-event-from-queue-to-db"]'/>
+		<ee:transform doc:name="DW Map Generic Event Transformation" doc:id="6d8ecf7a-becb-4c4e-9fce-7db6239120e3" >
+			<ee:message >
+				<ee:set-payload resource="dwl/publish-generic-event-from-queue-to-db.dwl" />
+			
+</ee:message>
+		</ee:transform>
+		<logger level="INFO" doc:name="Generic Event DB Request Log" doc:id="90503be4-094a-479b-a4f9-9e04efc14eac" message="#[payload]" />
+		<try doc:name="Try" doc:id="57aa56d1-ee93-4f7a-90d1-cc11a04410d7" >
+			<db:insert doc:name="Insert Generic Event" doc:id="bf20676b-0e8b-488d-8c2e-b754bcb60486" config-ref="generic-event-database">
+				<db:sql ><![CDATA[${file::sql/insert-generic-event-from-queue-to-db.sql}]]></db:sql>
+				<db:input-parameters ><![CDATA[#[payload]]]></db:input-parameters>
+			</db:insert>
+			<error-handler >
+				<on-error-propagate enableNotifications="true" logException="true" doc:name="On Error Propagate" doc:id="07bf30ad-b043-4c16-a080-3246a1d75929" type="ANY">
+					<ee:transform doc:name="Error Response" doc:id="aadc7ad8-5950-4448-8a6c-787b15afd146">
+						<ee:message>
+							<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+---
+{
+	"errorCode":"GEDB001",
+	"errorDesc" : error.description default "",
+	"errorCode": error.errorMessage default "",
+	"failingComponent": error.failingComponent default ""
+}]]></ee:set-payload>
+
+						</ee:message>
+						<ee:variables>
+						</ee:variables>
+					
+</ee:transform>
+					<logger level="INFO" doc:name="LOG ERROR Generic Event DB " doc:id="b288bbd3-5d6a-4fe2-835b-1b6b4ee651e7" message="#[payload]" />
+				</on-error-propagate>
+			
+</error-handler>
+		</try>
+		<!--  <try doc:name="Try" doc:id="51d35f4e-06d5-4626-a0e7-577d6bc42d4f" >
+			<db:insert doc:name="insert-generic-event-to-database" doc:id="77107259-143f-48b4-98d7-7987dc1c1565" config-ref="Database_Config">
+			<db:sql><![CDATA[${file::sql/insert-generic-event-from-queue-to-db.sql}]]>
+		</db:sql>
+			<db:input-parameters><![CDATA[#[payload]]]></db:input-parameters>
+		</db:insert>
+			<error-handler >
+				<on-error-continue enableNotifications="true" logException="true" doc:name="On Error Continue" doc:id="852d053a-278e-4981-933c-2634055e19b9" type="DB:CONNECTIVITY">
+					<ee:transform doc:name="Transform Message" doc:id="04ad8ac3-e7ff-4b9b-b34a-2ef1d2ba9ae6" >
+						<ee:message >
+							<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+-&#45;&#45;
+{
+	"message" : "DB:CONNECTIVITY ERROR"
+}]]></ee:set-payload>
+						</ee:message>
+					</ee:transform>
+				</on-error-continue>
+			</error-handler>
+		</try>
+	 -->
+		<ee:transform doc:name="Generic Event DB Success Response" doc:id="ef2ab9b9-3b26-4da0-a95c-ea24510bcf08" >
+			<ee:message >
+				<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+---
+{
+	"message" : "Customer created succesfully"
+}]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+		<logger level="INFO" doc:name="LOG INFO End Flow" doc:id="98b8fa16-3a5d-42a4-a2b5-16a8d553de2f" message='#["cf-generic-event-from-queue-to-db-end"]'/>
+	
+</sub-flow>
+	</mule>
